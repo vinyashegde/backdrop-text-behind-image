@@ -36,12 +36,6 @@ To get started with the BackDrop project, follow these steps:
 
 
 
-![image](https://github.com/user-attachments/assets/2d24e701-2aec-4ce6-a65b-36edbcd00667)
-![image](https://github.com/user-attachments/assets/06722b1c-a328-4d5e-b0cd-b8d0402d4a90)
-![image](https://github.com/user-attachments/assets/606128c7-4e33-4243-abff-a55a62bac78b)
-![image](https://github.com/user-attachments/assets/e1992d42-5e7c-4bd9-b37d-c0e3a9f56e54)
-
-
 
 
  
