@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BackDrop - Text Behind Image</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            /* Default font */
+        }
+    </style>
+    <script>
+        // Load Google Fonts using WebFont Loader
+        WebFont.load({
+            google: {
+                families: [
+                    'Roboto:100,300,400,500,700,900',      // Added lighter and bolder weights
+                    'Open Sans:300,400,600,700,800',        // Added extra weights
+                    'Lato:300,400,700,900',                // Added bolder weights
+                    'Montserrat:300,400,500,600,700,800',  // Expanded weight range
+                    'Oswald:400,700',                      // Available weights
+                    'Raleway:100,200,300,400,500,600,700', // Added all common weights
+                    'Merriweather:300,400,700,900',        // Extra weights
+                    'Poppins:100,200,300,400,500,600,700'  // Added lighter and bolder weights
+                ]
+            }
+        });
+
+    </script>
+</head>
+
+<body class="bg-gray-900 font-sans antialiased text-gray-100">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <h1 class="text-4xl font-bold text-center text-indigo-400 mb-6">BackDrop - Text Behind Image</h1></br>
+
+        <!-- Updated Wider Upload Form UI -->
+        <div class="font-[sans-serif] max-w-lg mx-auto bg-gray-800 shadow-lg rounded-2xl p-6 mb-8 mt-32">
+            <label class="text-base text-gray-300 font-semibold mb-2 block">Upload file</label>
+            <input type="file" name="image" accept="image/*"
+                class="w-full text-gray-400 font-semibold text-sm bg-white border file:cursor-pointer cursor-pointer file:border-0 file:py-3 file:px-4 file:mr-4 file:bg-gray-100 file:hover:bg-gray-200 file:text-gray-500 rounded"
+                required onchange="uploadFile(this)">
+            <p class="text-xs text-gray-400 mt-2">PNG, JPG, JPEG, WEBP, GIF, BMP are allowed.</p>
+        </div>
+
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="hidden flex items-center justify-center mt-4">
+            <svg class="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <span class="ml-2 text-gray-300">Uploading...</span>
+        </div>
+
+
+        <!-- Image and Customization Options -->
+        <div id="imageEditor" class="hidden flex flex-col md:flex-row gap-6">
+            <!-- Canvas Section -->
+            <div class="bg-gray-800 shadow-md rounded-lg p-6 flex-1">
+                <h2 class="text-lg font-semibold text-gray-200 mb-4">Preview and Customize</h2>
+                <canvas id="canvas" class="w-full h-64 sm:h-80 lg:h-96 border border-gray-300"></canvas>
+                <!-- Save and Reset Buttons -->
+                <div class="flex justify-between mt-4">
+                    <button id="saveButton"
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                        onclick="saveCanvas()">Save Image</button>
+                    <button id="resetButton" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                        onclick="resetPage()">Reset</button>
+                </div>
+
+            </div>
+
+            <!-- Text Customization Section -->
+            <div class="bg-gray-800 shadow-md rounded-lg p-6 flex-1 space-y-4">
+                <h3 class="text-lg font-semibold text-gray-200 mb-4">Text Customization</h3>
+
+                <div id="textControls">
+                    <!-- Dynamic Text Controls will be inserted here -->
+                </div>
+
+                <button id="addTextButton" onclick="addTextControl()"
+                    class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">Add
+                    Text</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let backgroundImage = null;
+        let subjectImage = null;
+        let textControls = [];
+
+        async function uploadFile(inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Show loading spinner
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // Hide loading spinner after upload completes
+                document.getElementById('loadingSpinner').classList.add('hidden');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    backgroundImage = new Image();
+                    backgroundImage.src = data.original_image;
+
+                    subjectImage = new Image();
+                    subjectImage.src = data.background_removed_image;
+
+                    backgroundImage.onload = () => {
+                        document.getElementById('imageEditor').classList.remove('hidden');
+                        updateCanvas();
+
+                        // Hide the upload form after successful upload
+                        const uploadForm = document.querySelector('.bg-gray-800.shadow-lg.rounded-2xl'); // Modify this selector if necessary
+                        uploadForm.classList.add('hidden'); // Hide the upload form
+                    };
+                } else {
+                    alert('Failed to process the image');
+                }
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('An error occurred while uploading the file.');
+            }
+        }
+
+
+
+
+
+        function addTextControl() {
+            const textIndex = textControls.length + 1;
+            const controlHtml = `
+                <div class="text-control mb-4 border p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-md font-semibold text-gray-300">Text ${textIndex}</h4>
+                        <div class="flex items-center">
+                        <button type="button" onclick="toggleTextControl(${textIndex})" class="text-indigo-600 hover:text-indigo-800">
+                        <!-- Example using Heroicons for a chevron icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+<button type="button" onclick="deleteTextControl(${textIndex})" class="text-red-600 hover:text-red-800 ml-2">
+                        <!-- Trash icon for delete -->
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+</svg>
+
+                    </button>
+                    </div>
+
+                    </div>
+                    <div id="textControlSet${textIndex}" class="mt-2">
+                        <input type="text" id="textInput${textIndex}" placeholder="Enter text" oninput="updateCanvas()" class="w-full px-3 py-2 mt-1 bg-gray-700 text-gray-300 border border-gray-600 rounded-lg">
+                        
+                        <label for="fontSelect${textIndex}" class="block text-sm font-medium text-gray-300 mt-2">Font</label>
+                        <select id="fontSelect${textIndex}" onchange="updateCanvas()" class="w-full px-3 py-2 mt-1 bg-gray-700 text-gray-300 border border-gray-600 rounded-lg">
+                            <option value="Roboto">Roboto</option>
+                            <option value="Open Sans">Open Sans</option>
+                            <option value="Lato">Lato</option>
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Oswald">Oswald</option>
+                            <option value="Raleway">Raleway</option>
+                            <option value="Merriweather">Merriweather</option>
+                            <option value="Poppins">Poppins</option>
+                        </select>
+
+                        <label for="fontWeight${textIndex}" class="block text-sm font-medium text-gray-300 mt-2">Font Weight</label>
+<select id="fontWeight${textIndex}" onchange="updateCanvas()" class="w-full px-3 py-2 mt-1 border rounded-lg bg-gray-700 text-gray-300 border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
+    <option value="normal">Normal</option>
+    <option value="bold">Bold</option>
+    <option value="bolder">Bolder</option>
+    <option value="lighter">Lighter</option>
+</select>
+
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <label for="textSize${textIndex}" class="block text-sm font-medium text-gray-300">Font Size</label>
+                                <input type="range" id="textSize${textIndex}" min="10" max="200" value="100" oninput="updateCanvas()" class="w-full">
+                            </div>
+                            <div>
+                                <label for="textColor${textIndex}" class="block text-sm font-medium text-gray-300">Font Color</label>
+                                <input type="color" id="textColor${textIndex}" value="#FFFFFF" oninput="updateCanvas()" class="w-full">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-4 mt-2">
+                            <label class="text-md flex items-center space-x-1">
+                                <input type="checkbox" id="blur${textIndex}" onchange="updateCanvas()"> <span>Text Blur</span>
+                            </label>
+                        </div>
+
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <label for="textXOffset${textIndex}" class="block text-sm font-medium text-gray-300">X Offset</label>
+                                <input type="range" id="textXOffset${textIndex}" min="-200" max="200" value="0" oninput="updateCanvas()" class="w-full">
+                            </div>
+                            <div>
+                                <label for="textYOffset${textIndex}" class="block text-sm font-medium text-gray-300">Y Offset</label>
+                                <input type="range" id="textYOffset${textIndex}" min="-200" max="200" value="0" oninput="updateCanvas()" class="w-full">
+                            </div>
+                        </div>
+                        
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="textRotation${textIndex}" class="block text-sm font-medium text-gray-300">Rotation</label>
+                                <input type="range" id="textRotation${textIndex}" min="-45" max="45" value="0" oninput="updateCanvas()" class="w-full">
+                            </div>
+                            <div>
+                                <label for="textOpacity${textIndex}" class="block text-sm font-medium text-gray-300">Opacity</label>
+                                <input type="range" id="textOpacity${textIndex}" min="0" max="1" step="0.1" value="1" oninput="updateCanvas()" class="w-full">
+                            </div>
+                        </div>
+
+                        
+                        <div class="col-span-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="enableGradient${textIndex}" onchange="toggleGradient(${textIndex})" unchecked>
+                                <label for="enableGradient${textIndex}" class="text-sm text-gray-300">Enable Gradient</label>
+                            </div>
+                            <input type="color" id="gradientColor${textIndex}" value="#00FF00" oninput="updateCanvas()" class="w-full" disabled style="display: none;>
+                        </div>
+
+
+                         <div>
+    <div class="flex items-center space-x-2">
+        <input type="checkbox" id="enableShadow${textIndex}" onchange="toggleShadow(${textIndex})" class="form-checkbox" />
+        <label for="enableShadow${textIndex}" class="text-sm text-gray-300">Enable Shadow</label>
+    </div>
+    <input type="color" id="shadowColor${textIndex}" value="#000000" oninput="updateCanvas()" class="w-full" disabled style="display: none;">
+    
+    <div class="flex items-center space-x-4 mt-2"> <!-- Flex container for side by side sliders -->
+        <div class="flex flex-col">
+            <label for="shadowBlur${textIndex}" class="block text-sm font-medium text-gray-700" style="display: none;">Blur</label>
+            <input type="range" id="shadowBlur${textIndex}" min="0" max="50" value="0" oninput="updateCanvas()" class="w-full" disabled style="display: none;">
+        </div>
+        
+        <div class="flex flex-col">
+            <label for="shadowOffset${textIndex}" class="block text-sm font-medium text-gray-700" style="display: none;">Offset</label>
+            <input type="range" id="shadowOffset${textIndex}" min="0" max="50" value="0" oninput="updateCanvas()" class="w-full" disabled style="display: none;">
+        </div>
+    </div>
+</div>
+
+                    </div>
+                </div>
+            `;
+            document.getElementById('textControls').insertAdjacentHTML('beforeend', controlHtml);
+            textControls.push(textIndex);
+        }
+
+        function toggleTextControl(index) {
+            const controlSet = document.getElementById(`textControlSet${index}`);
+            controlSet.classList.toggle('hidden');
+        }
+
+        function updateCanvas() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = 800; // Set desired canvas width
+            canvas.height = 600; // Set desired canvas height
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (backgroundImage) {
+                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            }
+
+            textControls.forEach(index => {
+                const text = document.getElementById(`textInput${index}`).value;
+                const font = document.getElementById(`fontSelect${index}`).value;
+                const fontWeight = document.getElementById(`fontWeight${index}`).value;
+                const size = document.getElementById(`textSize${index}`).value;
+                const color = document.getElementById(`textColor${index}`).value;
+                const gradientColor = document.getElementById(`gradientColor${index}`).value;
+                const blur = document.getElementById(`blur${index}`).checked;
+                const enableShadow = document.getElementById(`enableShadow${index}`).checked;
+                const shadowColor = enableShadow ? document.getElementById(`shadowColor${index}`).value : 'rgba(0, 0, 0, 0)';
+                const shadowBlur = enableShadow ? document.getElementById(`shadowBlur${index}`).value : 0;
+                const shadowOffset = enableShadow ? document.getElementById(`shadowOffset${index}`).value : 0;
+                const rotation = document.getElementById(`textRotation${index}`).value;
+                const opacity = document.getElementById(`textOpacity${index}`).value;
+                const enableGradient = document.getElementById(`enableGradient${index}`).checked;
+                const xOffset = document.getElementById(`textXOffset${index}`).value;
+                const yOffset = document.getElementById(`textYOffset${index}`).value;
+
+                ctx.save();
+                ctx.translate(canvas.width / 2 + parseInt(xOffset), canvas.height / 2 + parseInt(yOffset));
+                ctx.rotate(rotation * Math.PI / 180);
+                ctx.globalAlpha = opacity;
+
+                if (enableGradient) {
+                    const gradient = ctx.createLinearGradient(-100, -50, 100, 50);
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(1, gradientColor);
+                    ctx.fillStyle = gradient;
+                } else {
+                    ctx.fillStyle = color;
+                }
+
+                ctx.font = `${fontWeight} ${size}px ${font}`;
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = shadowBlur;
+                ctx.shadowOffsetX = shadowOffset;
+                ctx.shadowOffsetY = shadowOffset;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+
+                if (blur) {
+                    ctx.filter = 'blur(2px)';
+                } else {
+                    ctx.filter = 'none';
+                }
+
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            });
+
+            if (subjectImage) {
+                ctx.drawImage(subjectImage, 0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function deleteTextControl(index) {
+            // Remove the text control element from the DOM
+            const textControlElement = document.querySelector(`#textControlSet${index}`).closest('.text-control');
+            textControlElement.remove();
+
+            // Remove the corresponding textIndex from the textControls array
+            textControls = textControls.filter(textIndex => textIndex !== index);
+
+            // Update the canvas to reflect the removal
+            updateCanvas();
+        }
+
+
+        function toggleGradient(index) {
+            const gradientColorInput = document.getElementById(`gradientColor${index}`);
+            const isChecked = document.getElementById(`enableGradient${index}`).checked;
+            gradientColorInput.disabled = !isChecked; // Disable if not checked
+            gradientColorInput.style.display = isChecked ? 'block' : 'none'; // Hide if not checked
+            updateCanvas();
+        }
+
+
+        function toggleShadow(index) {
+            const shadowInputs = [
+                document.getElementById(`shadowColor${index}`),
+                document.getElementById(`shadowBlur${index}`),
+                document.getElementById(`shadowOffset${index}`)
+            ];
+            const shadowLabels = [
+                document.querySelector(`label[for="shadowBlur${index}"]`),
+                document.querySelector(`label[for="shadowOffset${index}"]`)
+            ];
+            const isChecked = document.getElementById(`enableShadow${index}`).checked;
+
+            shadowInputs.forEach(input => {
+                input.disabled = !isChecked; // Disable inputs if not checked
+                input.style.display = isChecked ? 'block' : 'none'; // Show inputs if checked, hide otherwise
+            });
+
+            shadowLabels.forEach(label => {
+                label.style.display = isChecked ? 'block' : 'none'; // Show labels if checked, hide otherwise
+            });
+
+            updateCanvas(); // Update the canvas to reflect changes
+        }
+
+
+
+        function saveCanvas() {
+            const canvas = document.getElementById('canvas');
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function resetPage() {
+            location.reload(); // Reload the page to reset all changes
+        }
+
+        function initializeTextControls() {
+            textControls.forEach(index => {
+                toggleGradient(index); // Set initial visibility for gradient
+                toggleShadow(index); // Set initial visibility for shadow
+            });
+        }
+
+        // Call this function after adding text controls, or on page load
+        initializeTextControls();
+
+
+    </script>
+</body>
+
+</html>
