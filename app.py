@@ -1,9 +1,10 @@
+import os
 from flask import Flask, render_template, request, jsonify
 from rembg import remove
 import base64
 
 app = Flask(__name__)
-application = app
+application = app  # For compatibility with some platforms (e.g. WSGI servers)
 
 @app.route('/')
 def index():
@@ -30,8 +31,11 @@ def upload_file():
             'original_image': f'data:image/png;base64,{original_image_base64}',
             'background_removed_image': f'data:image/png;base64,{modified_image_base64}'
         })
+    
     # Return an error if no image was uploaded
     return jsonify({'error': 'No image uploaded'}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use the port provided by Render (or default to 5000 for local development)
+    port = os.environ.get("PORT", 5000)
+    app.run(host="0.0.0.0", port=int(port), debug=True)  # Listen on all interfaces (0.0.0.0)
