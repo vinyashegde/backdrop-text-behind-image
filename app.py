@@ -6,6 +6,10 @@ import base64
 app = Flask(__name__)
 application = app  # For compatibility with some platforms (e.g. WSGI servers)
 
+# Set the custom model path in your project directory
+MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
+os.environ['U2NET_HOME'] = MODEL_DIR  # Set the environment variable for rembg to use
+
 @app.route('/')
 def index():
     # Render the main HTML page
