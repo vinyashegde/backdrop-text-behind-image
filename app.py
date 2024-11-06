@@ -43,6 +43,4 @@ def upload_file():
     return jsonify({'error': 'No image uploaded'}), 400
 
 if __name__ == '__main__':
-    # Bind the server to the PORT environment variable provided by Render
-    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run()
