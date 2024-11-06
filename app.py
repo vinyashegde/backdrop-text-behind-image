@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, jsonify
-from rembg import remove
+from rembg import remove, new_session
 import base64
 
 app = Flask(__name__)
@@ -9,6 +9,9 @@ application = app  # For compatibility with some platforms (e.g. WSGI servers)
 # Set the custom model path in your project directory
 MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
 os.environ['U2NET_HOME'] = MODEL_DIR  # Set the environment variable for rembg to use
+
+# Create a custom session for the 'u2netp' model
+custom_session = new_session("u2netp")
 
 @app.route('/')
 def index():
@@ -23,8 +26,8 @@ def upload_file():
         # Read the uploaded image file
         input_image = uploaded_file.read()
         
-        # Process image to remove background
-        output_image = remove(input_image)
+        # Process image to remove background using the custom session
+        output_image = remove(input_image, session=custom_session)
         
         # Convert the original image and background-removed image to base64
         original_image_base64 = base64.b64encode(input_image).decode('utf-8')
