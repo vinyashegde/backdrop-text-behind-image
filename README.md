@@ -1,8 +1,26 @@
 # BackDrop - Text Behind Image
 
+## 🔗 **Live Demo**
+You can check out the live demo of **BackDrop** here:  
+[**Live Demo**](https://backdrop-text-behind-image.vercel.app/)
+
 ## Overview
 
 BackDrop is a web-based project that allows you to create visually appealing text effects by placing text behind an image. This can enhance your website's aesthetics and provide a unique user experience. The project utilizes HTML, CSS, and JavaScript to manipulate text and images seamlessly.
+
+## 📦 **Features**
+- Upload and edit images (supports PNG, JPG, JPEG, WEBP, GIF, BMP).
+- AI-based background removal using remove.bg API.
+- Add customizable text behind the image.
+- Control text properties: font, size, color, opacity, rotation, and more.
+- Add text shadows and gradients.
+- Real-time canvas updates.
+
+## 🚀 **Tech Stack**
+- **Flask**: Backend server for image processing.
+- **remove.bg**: API for background removal.
+- **Tailwind CSS**: For responsive and modern UI styling.
+- **Vercel**: Hosting and deployment.
 
 ## Screenshots
 
@@ -12,19 +30,6 @@ BackDrop is a web-based project that allows you to create visually appealing tex
 ![image](https://github.com/user-attachments/assets/e1992d42-5e7c-4bd9-b37d-c0e3a9f56e54)
 
 
-## Features
-
-- **Text Overlay**: Easily add text behind images with customizable styles.
-- **Responsive Design**: The layout adapts to different screen sizes, ensuring a great experience on both desktop and mobile devices.
-- **Customizable Styles**: Change colors, fonts, and positioning of text to fit your design needs.
-- **Image Upload**: Users can upload their own images to see the text effect in action.
-
-## Technologies Used
-
-- **Flask**
-- **Rembg**
-- **Python**
-
 ## Installation
 
 To get started with the BackDrop project, follow these steps:
@@ -33,6 +38,7 @@ To get started with the BackDrop project, follow these steps:
 
    ```bash
    git clone https://github.com/vinyashegde/backdrop-text-behind-image.git
+   cd backdrop-text-behind-image
 
 
 
