@@ -26,15 +26,15 @@ API_KEYS = [
 
 # List of API endpoints (in order of preference)
 API_ENDPOINTS = [
-    os.getenv('REMOVE_BG_API_ENDPOINT'),  # Primary API
-    os.getenv('REMOVE_BG_API_ENDPOINT'),  # Fallback APIs (same endpoint, different keys)
-    os.getenv('REMOVE_BG_API_ENDPOINT'),
-    os.getenv('REMOVE_BG_API_ENDPOINT'),
-    os.getenv('REMOVE_BG_API_ENDPOINT'),
-    os.getenv('REMOVE_BG_API_ENDPOINT'),
-    os.getenv('REMOVE_BG_API_ENDPOINT'),
-    os.getenv('REMOVE_BG_API_ENDPOINT'),
-    os.getenv('REMOVE_BG_API_ENDPOINT'),
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg',
+    'https://api.remove.bg/v1.0/removebg', 
 ]
 
 @app.route('/')
